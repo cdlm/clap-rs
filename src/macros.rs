@@ -922,6 +922,19 @@ macro_rules! find_name_from {
     }};
 }
 
+
+macro_rules! find_any_by_name {
+    ($p:expr, $name:expr) => {
+        {
+            fn as_trait_obj<'a, 'b, T: AnyArg<'a, 'b>>(x: &T) -> &AnyArg<'a, 'b> { x }
+            find_by_name!($p, $name, flags, iter).map(as_trait_obj).or(
+                find_by_name!($p, $name, opts, iter).map(as_trait_obj).or(
+                    find_by_name!($p, $name, positionals, values).map(as_trait_obj)
+                )
+            )
+        }
+    }
+}
 // Finds an arg by name
 macro_rules! find_by_name {
     ($p:expr, $name:expr, $what:ident, $how:ident) => {

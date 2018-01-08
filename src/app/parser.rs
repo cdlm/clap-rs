@@ -1483,7 +1483,6 @@ where
             self.settings.set(AS::ValidArgFound);
             let ret = self.parse_opt(val, opt, val.is_some(), matcher)?;
             if self.cache.map_or(true, |name| name != opt.b.name) {
-                arg_post_processing!(self, opt, matcher);
                 self.cache = Some(opt.b.name);
             }
 
@@ -1501,10 +1500,9 @@ where
             self.parse_flag(flag, matcher)?;
 
             // Handle conflicts, requirements, etc.
-            // if self.cache.map_or(true, |name| name != flag.b.name) {
-            arg_post_processing!(self, flag, matcher);
-            // self.cache = Some(flag.b.name);
-            // }
+             if self.cache.map_or(true, |name| name != flag.b.name) {
+                 self.cache = Some(flag.b.name);
+             }
 
             return Ok(ParseResult::Flag);
         } else if self.is_set(AS::AllowLeadingHyphen) {
@@ -1580,7 +1578,6 @@ where
                 let ret = self.parse_opt(val, opt, false, matcher)?;
 
                 if self.cache.map_or(true, |name| name != opt.b.name) {
-                    arg_post_processing!(self, opt, matcher);
                     self.cache = Some(opt.b.name);
                 }
 
@@ -1595,7 +1592,6 @@ where
                 // Handle conflicts, requirements, overrides, etc.
                 // Must be called here due to mutablilty
                 if self.cache.map_or(true, |name| name != flag.b.name) {
-                    arg_post_processing!(self, flag, matcher);
                     self.cache = Some(flag.b.name);
                 }
             } else {
@@ -1844,7 +1840,6 @@ where
                         $_self.add_val_to_arg($a, OsStr::new(val), $m)?;
 
                         if $_self.cache.map_or(true, |name| name != $a.name()) {
-                            arg_post_processing!($_self, $a, $m);
                             $_self.cache = Some($a.name());
                         }
                     } else if $m.get($a.b.name).is_some() {
@@ -1855,7 +1850,6 @@ where
                         $_self.add_val_to_arg($a, OsStr::new(val), $m)?;
 
                         if $_self.cache.map_or(true, |name| name != $a.name()) {
-                            arg_post_processing!($_self, $a, $m);
                             $_self.cache = Some($a.name());
                         }
                     }
@@ -1881,7 +1875,6 @@ where
                             if add {
                                 $_self.add_val_to_arg($a, OsStr::new(default), $m)?;
                                 if $_self.cache.map_or(true, |name| name != $a.name()) {
-                                    arg_post_processing!($_self, $a, $m);
                                     $_self.cache = Some($a.name());
                                 }
                                 done = true;
@@ -1920,7 +1913,6 @@ where
                             $_self.add_val_to_arg($a, OsStr::new(val), $m)?;
 
                             if $_self.cache.map_or(true, |name| name != $a.name()) {
-                                arg_post_processing!($_self, $a, $m);
                                 $_self.cache = Some($a.name());
                             }
                         }
@@ -1929,7 +1921,6 @@ where
                             $_self.add_val_to_arg($a, OsStr::new(val), $m)?;
 
                             if $_self.cache.map_or(true, |name| name != $a.name()) {
-                                arg_post_processing!($_self, $a, $m);
                                 $_self.cache = Some($a.name());
                             }
                         }

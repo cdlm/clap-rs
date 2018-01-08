@@ -190,7 +190,18 @@ impl<'a, 'b, 'z> Validator<'a, 'b, 'z> {
             });
         }
 
-        for name in &self.0.blacklist {
+        let mut conflicts: Vec<&str> = vec![];
+        for (&name, _) in matcher.iter() {
+            if let Some(bl) = find_any_by_name!(self.0, name).unwrap().blacklist() {
+                for conf in bl {
+                    if matcher.get(conf).is_some() {
+                        conflicts.push(conf);
+                    }
+                }
+            }
+        }
+
+        for name in &conflicts {
             debugln!(
                 "Validator::validate_blacklist:iter:{}: Checking blacklisted arg",
                 name

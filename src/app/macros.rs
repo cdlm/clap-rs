@@ -32,71 +32,8 @@ macro_rules! remove_overriden {
     };
 }
 
-macro_rules! arg_post_processing {
-    ($me:ident, $arg:ident, $matcher:ident) => {
-        debugln!("arg_post_processing!;");
-        // Handle POSIX overrides
-        debug!("arg_post_processing!: Is '{}' in overrides...", $arg.to_string());
-        if $me.overrides.contains(&$arg.name()) {
-            if let Some(ref name) = find_name_from!($me, &$arg.name(), overrides, $matcher) {
-                sdebugln!("Yes by {}", name);
-                $matcher.remove(name);
-                remove_overriden!($me, name);
-            }
-        } else { sdebugln!("No"); }
-
-        // Add overrides
-        debug!("arg_post_processing!: Does '{}' have overrides...", $arg.to_string());
-        if let Some(or) = $arg.overrides() {
-            sdebugln!("Yes");
-            $matcher.remove_all(or);
-            for pa in or { remove_overriden!($me, pa); }
-            $me.overrides.extend(or);
-            vec_remove_all!($me.required, or.iter());
-        } else { sdebugln!("No"); }
-
-        // Handle conflicts
-        debug!("arg_post_processing!: Does '{}' have conflicts...", $arg.to_string());
-        if let Some(bl) = $arg.blacklist() {
-            sdebugln!("Yes");
-
-            for c in bl {
-                // Inject two-way conflicts
-                debug!("arg_post_processing!: Has '{}' already been matched...", c);
-                if $matcher.contains(c) {
-                    sdebugln!("Yes");
-                    // find who blacklisted us...
-                    $me.blacklist.push(&$arg.b.name);
-                } else {
-                    sdebugln!("No");
-                }
-            }
-
-            $me.blacklist.extend_from_slice(bl);
-            vec_remove_all!($me.overrides, bl.iter());
-            // vec_remove_all!($me.required, bl.iter());
-        } else { sdebugln!("No"); }
-
-        // Add all required args which aren't already found in matcher to the master
-        // list
-        debug!("arg_post_processing!: Does '{}' have requirements...", $arg.to_string());
-        if let Some(reqs) = $arg.requires() {
-            for n in reqs.iter()
-                .filter(|&&(val, _)| val.is_none())
-                .filter(|&&(_, req)| !$matcher.contains(&req))
-                .map(|&(_, name)| name) {
-
-                $me.required.push(n);
-            }
-        } else { sdebugln!("No"); }
-
-        _handle_group_reqs!($me, $arg);
-    };
-}
-
 macro_rules! _handle_group_reqs{
     ($me:ident, $arg:ident) => ({
-        use args::AnyArg;
         debugln!("_handle_group_reqs!;");
         for grp in &$me.groups {
             let found = if grp.args.contains(&$arg.name()) {
@@ -152,7 +89,6 @@ macro_rules! parse_positional {
         let _ = $_self.groups_for_arg($p.b.name)
                       .and_then(|vec| Some($matcher.inc_occurrences_of(&*vec)));
         if $_self.cache.map_or(true, |name| name != $p.b.name) {
-            arg_post_processing!($_self, $p, $matcher);
             $_self.cache = Some($p.b.name);
         }
 
